@@ -1,35 +1,48 @@
-package service.serviceImpl;
+package com.crio.qcontest.services;
 
-import model.DifficultyLevel;
-import model.Question;
-import repository.repositoryInterface.QuestionRepository;
-import service.serviceInterface.QuestionService;
-
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import com.crio.qcontest.entities.DifficultyLevel;
+import com.crio.qcontest.entities.Question;
+import com.crio.qcontest.repositories.IQuestionRepository;
 
-public class QuestionServiceImpl implements QuestionService {
-    private final QuestionRepository repo;
+public class QuestionService{
 
-    public QuestionServiceImpl(QuestionRepository repo) {
-        this.repo = repo;
+    private final IQuestionRepository questionRepository;
+
+    public QuestionService(IQuestionRepository questionRepository) {
+        this.questionRepository = questionRepository;
     }
 
-    @Override
-    public Question createQuestion(String title, DifficultyLevel level, int score) {
+    /**
+     * Creates a new question with specified parameters.
+     * @param title Title of the question.
+     * @param level Difficulty level of the question.
+     * @param difficultyScore Difficulty score of the question.
+     * @return Created Question object.
+     */
+    public Question createQuestion(String title,DifficultyLevel level, Integer difficultyScore) {
         if (title == null || title.isBlank()) throw new IllegalArgumentException("title empty");
-        Question q = new Question(title, level, score);
-        return repo.save(q);
+        Question q = new Question(title, level, difficultyScore);
+        return questionRepository.save(q);
     }
 
-    @Override
-    public List<Question> listQuestions(Optional<DifficultyLevel> level) {
-        if (level.isPresent()) {
-            return repo.findByLevel(level.get());
-        } else {
-            return repo.findAll();
+    /**
+     * Retrieves a list of questions filtered by difficulty level.
+     * @param level Difficulty level filter (can be null).
+     * @return List of questions filtered by difficulty level.
+     */
+    public List<Question> listQuestions(DifficultyLevel level) {
+        List<Question> all = questionRepository.findAll();
+
+        if (level == null) {
+            return all;  // Return everything
         }
+
+        return all.stream()
+                .filter(q -> q.getLevel() == level)
+                .collect(Collectors.toList());
     }
 
 }
